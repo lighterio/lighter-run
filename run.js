@@ -53,6 +53,7 @@ start()
 
 /**
  * Respond to a change event.
+ *
  * @param  {String} path  Path of the file in which the change occurred.
  * @param  {Object} info  Information about the change from `fsevents`.
  */
@@ -76,6 +77,7 @@ function changed (path, info) {
 
 /**
  * Get a string of numberless ordered lines for deduping logs.
+ *
  * @param  {String} text  Text received from the child's stdout.
  * @return {String}       Numberless ordered lines.
  */
@@ -155,6 +157,7 @@ function pipe () {
 
 /**
  * Try writing to `stdout`, and ignore failures.
+ *
  * @param  {Buffer} data  Data to write to stdout.
  */
 function write (data) {

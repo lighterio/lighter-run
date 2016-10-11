@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "A process runner with refresh capabilities.",
   "dependencies": {
-    "chokidar": "^1.6.0",
-    "fsevents": "^1.0.14"
+    "fsevents": ">=1.0.14 <2",
+    "lighter-config": ">=1.1.0 <2"
   },
   "devDependencies": {
-    "exam": ">=1.4.3 <2"
+    "exam": ">=1.4.5 <2"
   },
   "bundledDependencies": [],
   "keywords": [
