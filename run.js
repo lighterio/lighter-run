@@ -2,6 +2,7 @@
 
 var spawn = require('child_process').spawn
 var config = require('lighter-config').run || {}
+var fsevents = require('fsevents')
 var stdout = process.stdout
 var node = process.execPath
 var args = process.argv.slice(3)
@@ -13,9 +14,8 @@ try {
   var main = require.resolve(cwd)
   args.unshift(main)
 } catch (ignore) {
-  console.log(ignore)
-  console.log('The current directory does not contain a node application.')
-  console.log('Please run "npm init" and create an entry point file.')
+  console.error('The current directory does not have a node application.\n' +
+    'Please use "npm init", then create an entry point file such as "index.js".')
   process.exit()
 }
 
@@ -38,7 +38,6 @@ var restartTime = 0
 var child
 
 // Watch for changes.
-var fsevents = require('fsevents')
 var watcher = fsevents(cwd)
 watcher.on('change', changed)
 watcher.start()
