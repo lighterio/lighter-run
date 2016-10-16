@@ -6,8 +6,8 @@
 [![Coverage](https://img.shields.io/coveralls/lighterio/lighter-run/master.svg)](//coveralls.io/r/lighterio/lighter-run)
 [![Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](//www.npmjs.com/package/standard)
 
-The `lighter-run` module combines speed and support by immediately loading a
-basic set of MIME types, and lazily loading a full set.
+With `lighter-run`, you can the node package in your current directory, and it
+will restart when files change.
 
 ## Installation
 From your project directory, install and save as a dependency:
@@ -15,54 +15,26 @@ From your project directory, install and save as a dependency:
 npm install --save lighter-run
 ```
 
-## API
-The `lighter-run` package exports an object whose keys are lowercase file
-extensions and values are MIME types.
-
-### mime
-The basic mapping is pretty simple:
-```js
-var mime = require('lighter-run')
-console.log(mime)
-
-//> { css: 'text/css',
-//    gif: 'image/gif',
-//    html: 'text/html',
-//    ico: 'image/x-icon',
-//    jpg: 'image/jpg',
-//    js: 'application/javascript',
-//    json: 'application/json',
-//    png: 'image/png',
-//    svg: 'image/svg+xml',
-//    txt: 'text/plain',
-//    xml: 'application/xml' }
+Then add to your scripts block in `package.json`.
+```json
+{
+  ...
+  "scripts": {
+    ...
+    "run": "./node_modules/.bin/lighter-run",
+    ...
+  }
+  ...
+}
 ```
 
-### mime.set(extension, type)
-Set or overwrite a MIME type mapping for a given extension.
-```js
-var mime = require('lighter-run')
-console.log(mime.js)
-//> 'application/javascript'
-
-// Let's consider JavaScript to be text.
-mime.set('js', 'text/javascript')
-console.log(mime.js)
-//> 'text/javascript'
+Run your process with:
+```bash
+npm run run
 ```
 
-### mime.load()
-Load the comprehensive list immediately (and return the mapping).
-```js
-var mime = require('lighter-run').load()
-console.log(mime.docx)
-//> 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-```
-
-### mime.timeout(milliseconds)
-Delay loading the comprehensive list for a specified number of milliseconds,
-rather than the default 1 millisecond.
-
+## Configuration
+`lighter-run` uses `lighter-config` for its configuration.
 
 ## More on lighter-run...
 * [Contributing](//github.com/lighterio/lighter-run/blob/master/CONTRIBUTING.md)

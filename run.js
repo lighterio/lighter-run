@@ -1,13 +1,58 @@
 #!/usr/bin/env node
 
 var spawn = require('child_process').spawn
-var config = require('lighter-config').run || {}
+var config = require('lighter-config').lighterRun || {}
 var fsevents = require('fsevents')
 var stdout = process.stdout
+var write = stdout.write
 var node = process.execPath
 var args = process.argv.slice(3)
 var cwd = process.cwd()
 var env = process.env
+var child = null
+var output = ''
+var previousStart = 0
+var failureOutput
+
+// Try to restart in half a second.
+var minRestartDelay = config.minRestartDelay || 500
+
+// Wait 5 seconds at most.
+var maxRestartDelay = config.maxRestartDelay || 5e4
+
+// Wait twice as long each time.
+var restartDelayBackoff = config.restartDelayBackoff || 2
+
+// Call a restart "ok" after 2 seconds without failing.
+var cleanTime = config.cleanTime || 2e3
+
+// The first time we restart, do it quickly.
+var restartDelay = 0
+
+// Live-reloadable (or ignorable) globs.
+var live = config.live || ['.cache', 'coverage', 'data', 'log', 'public', 'views']
+if (typeof live === 'string') {
+  live = [live]
+}
+live.forEach(function (pattern, index) {
+  live[index] = pattern
+    .replace(/([\W])/g, function (c) {
+      switch (c) {
+        case '*':
+          return '.+'
+        default:
+          return '\\' + c
+      }
+    })
+    .replace(/^\\\//g, '^')
+})
+live = '(' + live.join('|') + ')'
+live = new RegExp(live, 'i')
+
+// Watch for changes.
+var watcher = fsevents(cwd)
+watcher.on('change', changed)
+watcher.start()
 
 // Find the "main" file in "package.json".
 try {
@@ -18,34 +63,6 @@ try {
     'Please use "npm init", then create an entry point file such as "index.js".')
   process.exit()
 }
-
-// Try to restart in half a second.
-var minRestartTime = config.minRestartTime || 500
-
-// Wait 5 seconds at most.
-var maxRestartTime = config.maxRestartTime || 5e4
-
-// Wait twice as long each time.
-var restartTimeBackoff = config.restartTimeBackoff || 2
-
-// Call a restart "ok" after 2 seconds without failing.
-var cleanTime = config.cleanTime || 2e3
-
-// The first time we restart, do it quickly.
-var restartTime = 0
-
-// Keep a reference to the child process.
-var child
-
-// Watch for changes.
-var watcher = fsevents(cwd)
-watcher.on('change', changed)
-watcher.start()
-
-// Remember when we last started.
-var previousStart = new Date(0)
-var failureOutput
-var startTimer
 
 // Start the application!
 start()
@@ -64,12 +81,12 @@ function changed (path, info) {
   var what = info.event.replace(/^\w/, function (c) { return c.toUpperCase() })
   var when = '\u001b[90m at ' + time + '\u001b[39m'
   console.log('\n\u001b[33m' + what + ' "' + path + '"' + when)
-  if (child) {
-    if (/is-hot-reloadable/.test(path)) {
+  if (!child.killed) {
+    if (live.test(path)) {
+      info = JSON.stringify(info)
       child.stdin.write(info)
     } else {
       child.kill()
-      child = undefined
     }
   }
 }
@@ -94,77 +111,54 @@ function munge (text) {
  * Start an application.
  */
 function start () {
-  var output
-  var now = new Date()
+  var now = Date.now()
   var elapsed = now - previousStart
 
   // If it's been a while since we restarted, call this a clean start.
-  var isCleanStart = elapsed > cleanTime
+  var isCleanStart = elapsed >= cleanTime
   previousStart = now
 
+  // Spawn the child process, and pipe output to stdout.
   child = spawn(node, args, {cwd: cwd, env: env})
+  child.stdout.pipe(stdout)
+  child.stderr.pipe(stdout)
 
   // When we've started cleanly, pipe child process output directly to stdout.
   if (isCleanStart) {
-    pipe()
-    restartTime = 0
+    restartDelay = 0
 
   // After a fast failure, buffer the output in case we fail again.
   } else {
-    output = ''
-    var append = function (chunk) {
+    stdout.write = function (chunk) {
       output += chunk
     }
-    child.stdout.on('data', append)
-    child.stderr.on('data', append)
 
     // When we've started cleanly, write output to stdout and start piping.
-    startTimer = setTimeout(function () {
-      write(output + '\n')
-      child.stdout.removeListener('output', append)
-      child.stderr.removeListener('output', append)
-      pipe()
+    this.cleanTimer = setTimeout(function () {
+      stdout.write = write
+      stdout.write(output)
       output = ''
-      restartTime = 0
+      restartDelay = 0
     }, cleanTime)
   }
 
   // When a child process dies, restart it.
   child.on('close', function () {
+    // Restore stdout.write
+    stdout.write = write
+
     // If we failed differently, log the new output.
     if (failureOutput && (munge(output) !== munge(failureOutput))) {
-      write(output)
+      stdout.write(output)
 
     // If we failed the same way, just show another red dot.
-    } else if (child) {
-      write('\u001b[31m.\u001b[39m')
+    } else {
+      stdout.write('\u001b[31m.\u001b[39m')
     }
     failureOutput = output
-    clearTimeout(startTimer)
-    startTimer = setTimeout(start, restartTime)
-    restartTime = Math.min(restartTime * restartTimeBackoff, maxRestartTime) || minRestartTime
+    output = ''
+    clearTimeout(this.cleanTimer)
+    this.cleanTimer = setTimeout(start, restartDelay)
+    restartDelay = Math.min(restartDelay * restartDelayBackoff, maxRestartDelay) || minRestartDelay
   })
-}
-
-/**
- * Start piping output data to stdout.
- */
-function pipe () {
-  child.stdout.pipe(stdout)
-  child.stderr.pipe(stdout)
-}
-
-/**
- * Try writing to `stdout`, and ignore failures.
- *
- * @param  {Buffer} data  Data to write to stdout.
- */
-function write (data) {
-  if (data) {
-    try {
-      stdout.write(data)
-    } catch (e) {
-      // TODO: Debug "TypeError: invalid data" at WriteStream.Socket.write
-    }
-  }
 }
