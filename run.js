@@ -2,7 +2,6 @@
 
 var spawn = require('child_process').spawn
 var config = require('lighter-config').lighterRun || {}
-var fsevents = require('fsevents')
 var stdout = process.stdout
 var write = stdout.write
 var node = process.execPath
@@ -50,9 +49,17 @@ live = '(' + live.join('|') + ')'
 live = new RegExp(live, 'i')
 
 // Watch for changes.
-var watcher = fsevents(cwd)
-watcher.on('change', changed)
-watcher.start()
+try {
+  var fsevents = require('fsevents')
+  var watcher = fsevents(cwd)
+  watcher.on('change', changed)
+  watcher.start()
+} catch (ignore) {
+  var fs = require('fs')
+  fs.watch(cwd, function (type, path) {
+    changed(path, {event: type, path: path})
+  })
+}
 
 // Find the "main" file in "package.json".
 try {

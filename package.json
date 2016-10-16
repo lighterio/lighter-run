@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "A process runner with refresh capabilities.",
   "dependencies": {
-    "fsevents": ">=1.0.14 <2",
     "lighter-config": ">=1.1.0 <2"
+  },
+  "optionalDependencies": {
+    "fsevents": ">=1.0.14 <2"
   },
   "devDependencies": {
     "exam": ">=1.4.5 <2"
   },
-  "bundledDependencies": [],
   "keywords": [
     "lighter",
     "app",
