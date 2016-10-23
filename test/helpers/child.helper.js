@@ -1,5 +1,4 @@
 'use strict'
-/* global is */
 
 var util = require('util')
 var Emitter = require('events')
@@ -12,7 +11,9 @@ function Stream () {
 
 util.inherits(Stream, Emitter)
 Stream.prototype.pipe = function (stream) {
-  is(stream, process.stdout)
+  if (stream !== process.stdout) {
+    throw new Error('Should only stream on stdout.')
+  }
 }
 
 function Child () {
