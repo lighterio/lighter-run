@@ -6,35 +6,44 @@
 [![Coverage](https://img.shields.io/coveralls/lighterio/lighter-run/master.svg)](//coveralls.io/r/lighterio/lighter-run)
 [![Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](//www.npmjs.com/package/standard)
 
-With `lighter-run`, you can the node package in your current directory, and it
-will restart when files change.
+With `lighter-run`, you can run the node application that's in your current
+directory, and it will restart when files change.
 
-## Installation
-From your project directory, install and save as a dependency:
+## Quick Start
+1. Install globally (using sudo if necessary).
 ```bash
-npm install --save lighter-run
+npm install --global lighter-run
 ```
+2. Ensure that the `"main"` property in your `package.json` points to your
+application's entry point file.
 
-Then add to your scripts block in `package.json`.
-```json
-{
-  ...
-  "scripts": {
-    ...
-    "run": "./node_modules/.bin/lighter-run",
-    ...
-  }
-  ...
-}
-```
-
-Run your process with:
+3. Run!
 ```bash
-npm run run
+lighter-run
 ```
 
 ## Configuration
-`lighter-run` uses `lighter-config` for its configuration.
+`lighter-run` uses `lighter-config` for its configuration. Just create a
+`"config/base.json"` file in your project, and add some options under a
+property called `"lighterRun"`. The following options are the default values:
+```json
+{
+  "lighterRun": {
+    "minRestartDelay": 500,
+    "maxRestartDelay": 50000,
+    "restartDelayBackoff": 2,
+    "cleanTime": 2000,
+    "live": [
+      ".cache",
+      "coverage",
+      "data",
+      "log",
+      "public",
+      "views"
+    ]
+  }
+}
+```
 
 ## More on lighter-run...
 * [Contributing](//github.com/lighterio/lighter-run/blob/master/CONTRIBUTING.md)
