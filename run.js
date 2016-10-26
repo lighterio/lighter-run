@@ -49,8 +49,9 @@ live = '(' + live.join('|') + ')'
 live = new RegExp(live, 'i')
 
 // Watch for changes.
+var fsevents
 try {
-  var fsevents = require('fsevents')
+  fsevents = require('fsevents')
   var watcher = fsevents(cwd)
   watcher.on('change', changed)
   watcher.start()

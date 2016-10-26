@@ -237,5 +237,46 @@ if (process.platform === 'darwin') {
         event: 'modified'
       })
     })
+
+    it('falls back to fs.watch', function (done) {
+      var fs = require('fs')
+      var fsevents = cache[fseventsJs]
+      mock(console, {
+        log: mock.count()
+      })
+      mock(cp, {
+        spawn: function () {
+          return {
+            on: noop,
+            stdout: fakeStream,
+            stderr: fakeStream,
+            stdin: fakeStream,
+            kill: function () {
+              is(console.log.value, 1)
+              unmock(console)
+              unmock(cp)
+              unmock(fsevents)
+              unmock(fs)
+              done()
+            }
+          }
+        }
+      })
+      mock(fsevents, {
+        exports: function () {
+          throw new Error('fsevents only works on OSX.')
+        }
+      })
+      mock(fs, {
+        watch: function (dir, fn) {
+          is(dir, cwd)
+          setTimeout(function () {
+            fn('change', cwd + '/restart.js')
+          }, 1)
+        }
+      })
+      delete cache[runJs]
+      require('../run')
+    })
   })
 }
