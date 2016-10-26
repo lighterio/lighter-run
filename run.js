@@ -17,19 +17,19 @@ var failureOutput
 var minRestartDelay = config.minRestartDelay || 500
 
 // Wait 5 seconds at most.
-var maxRestartDelay = config.maxRestartDelay || 5e4
+var maxRestartDelay = config.maxRestartDelay || 5000
 
 // Wait twice as long each time.
 var restartDelayBackoff = config.restartDelayBackoff || 2
 
 // Call a restart "ok" after 2 seconds without failing.
-var cleanTime = config.cleanTime || 2e3
+var cleanTime = config.cleanTime || 2000
 
 // The first time we restart, do it quickly.
 var restartDelay = 0
 
 // Live-reloadable (or ignorable) globs.
-var live = config.live || ['.cache', 'coverage', 'data', 'log', 'public', 'views']
+var live = config.live || ['.cache', 'coverage', 'data', 'log']
 if (typeof live === 'string') {
   live = [live]
 }
@@ -88,7 +88,7 @@ function changed (path, info) {
   }
   var what = info.event.replace(/^\w/, function (c) { return c.toUpperCase() })
   var when = '\u001b[90m at ' + time + '\u001b[39m'
-  console.log('\n\u001b[33m' + what + ' "' + path + '"' + when)
+  console.log('\u001b[33m' + what + ' "' + path + '"' + when + '\n')
   if (!child.killed) {
     if (live.test(path)) {
       info = JSON.stringify(info)
@@ -157,10 +157,10 @@ function start () {
 
     // If we failed differently, log the new output.
     if (failureOutput && (munge(output) !== munge(failureOutput))) {
-      stdout.write(output)
+      stdout.write('\n' + output)
 
     // If we failed the same way, just show another red dot.
-    } else {
+    } else if (!child.killed) {
       stdout.write('\u001b[31m.\u001b[39m')
     }
     failureOutput = output

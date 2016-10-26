@@ -6,6 +6,7 @@ var cp = require('child_process')
 var Child = require('./helpers/child.helper.js')
 var cwd = process.cwd()
 var stdout = process.stdout
+var write = stdout.write
 var cache = require.cache
 var runJs = cwd + '/run.js'
 
@@ -20,14 +21,15 @@ describe('spawn', function () {
       }
     })
     mock(stdout, {
-      write: mock.ignore()
+      write: function () {}
     })
   })
 
   afterEach(function () {
     unmock(config)
     unmock(cp)
-    unmock(stdout)
+    unmock(process)
+    stdout.write = write
   })
 
   it('spawns a child process', function (done) {
@@ -77,6 +79,38 @@ describe('spawn', function () {
             child.close()
           }, spawnCount * 10)
         } else {
+          setTimeout(done, 1)
+        }
+        child = new Child()
+        return child
+      }
+    })
+    delete cache[runJs]
+    require('../run')
+  })
+
+  it('skips the dot if the child was killed manually', function (done) {
+    var spawnCount = 0
+    var child = new Child()
+    mock(stdout, {
+      write: mock.args()
+    })
+    mock(cp, {
+      spawn: function (node, args) {
+        ++spawnCount
+        if (spawnCount < 4) {
+          setTimeout(function () {
+            stdout.write('Spawn ' + spawnCount + '.')
+            child.killed = true
+            child.close()
+          }, spawnCount * 10)
+        } else {
+          is.same(stdout.write.value, [
+            {'0': 'Spawn 1.'},
+            {'0': ''},
+            {'0': 'Spawn 3.'},
+            {'0': '\n'}
+          ])
           setTimeout(done, 1)
         }
         child = new Child()

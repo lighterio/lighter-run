@@ -25,25 +25,39 @@ lighter-run
 ## Configuration
 `lighter-run` uses `lighter-config` for its configuration. Just create a
 `"config/base.json"` file in your project, and add some options under a
-property called `"lighterRun"`. The following options are the default values:
+property called `"lighterRun"`. The following is an example of a configuration which uses the default values:
 ```json
 {
   "lighterRun": {
     "minRestartDelay": 500,
-    "maxRestartDelay": 50000,
+    "maxRestartDelay": 5000,
     "restartDelayBackoff": 2,
     "cleanTime": 2000,
     "live": [
       ".cache",
       "coverage",
       "data",
-      "log",
-      "public",
-      "views"
+      "log"
     ]
   }
 }
 ```
+
+**minRestartDelay**<br>
+Amount of time to wait before trying to restart (the first time).
+
+**maxRestartDelay**<br>
+Maximum amount of time to wait before trying to restart, after failing many times.
+
+**restartDelayBackoff**<br>
+Multiplier to be applied to the restart delay time after each failure.
+
+**cleanTime**<br>
+Length of time that a process must be running before it's considered to have started cleanly.
+
+**live**<br>
+File patterns that can be modified without causing the process to be restarted.
+
 
 ## More on lighter-run...
 * [Contributing](//github.com/lighterio/lighter-run/blob/master/CONTRIBUTING.md)
