@@ -28,45 +28,64 @@ var cleanTime = config.cleanTime || 2000
 // The first time we restart, do it quickly.
 var restartDelay = 0
 
-// Live-reloadable (or ignorable) globs.
-var live = config.live || ['.cache', 'coverage', 'data', 'log']
-if (typeof live === 'string') {
-  live = [live]
+// Directories to watch.
+var watchDirs = config.watchDirs || [cwd]
+
+// Globs for paths whose changes should be ignored.
+var ignore = globify(config.ignore || ['.DS_Store', '.cache', '.git', '.idea', '.project', 'coverage', 'data', 'log'])
+
+// Globs for paths whose changes are live-reloadable.
+var live = globify(config.live || ['public', 'scripts', 'styles', 'views'])
+
+/**
+ * Treat a single string or a falsy value as a string array.
+ *
+ * @param  {String|Array} value  A string or an array of strings.
+ * @return {Array}               An array of RegExp patterns.
+ */
+function globify (value) {
+  var array = typeof value === 'string' ? [value] : value
+  array.forEach(function (pattern, index) {
+    pattern = pattern
+      .replace(/([\W])/g, function (c) {
+        switch (c) {
+          case '*': return '.+'
+          default: return '\\' + c
+        }
+      })
+    if (pattern.substr(0, 2) === '\\\/') {
+      pattern = '^' + pattern.substr(2)
+    } else {
+      pattern = '(^|\\/)' + pattern
+    }
+    array[index] = pattern + '($|\\/)'
+  })
+  var pattern = '(' + array.join('|') + ')'
+  pattern = new RegExp(pattern, 'i')
+  return pattern
 }
-live.forEach(function (pattern, index) {
-  live[index] = pattern
-    .replace(/([\W])/g, function (c) {
-      switch (c) {
-        case '*':
-          return '.+'
-        default:
-          return '\\' + c
-      }
-    })
-    .replace(/^\\\//g, '^')
-})
-live = '(' + live.join('|') + ')'
-live = new RegExp(live, 'i')
 
 // Watch for changes.
-var fsevents
-try {
-  fsevents = require('fsevents')
-  var watcher = fsevents(cwd)
-  watcher.on('change', changed)
-  watcher.start()
-} catch (ignore) {
-  var fs = require('fs')
-  fs.watch(cwd, function (type, path) {
-    changed(path, {event: type, path: path})
-  })
-}
+watchDirs.forEach(function (dir) {
+  var fsevents
+  try {
+    fsevents = require('fsevents')
+    var watcher = fsevents(dir)
+    watcher.on('change', changed)
+    watcher.start()
+  } catch (e) {
+    var fs = require('fs')
+    fs.watch(dir, function (type, path) {
+      changed(path, {event: type, path: path})
+    })
+  }
+})
 
 // Find the "main" file in "package.json".
 try {
   var main = require.resolve(cwd)
   args.unshift(main)
-} catch (ignore) {
+} catch (e) {
   console.error('The current directory does not have a node application.\n' +
     'Please use "npm init", then create an entry point file such as "index.js".')
   process.exit()
@@ -82,19 +101,24 @@ start()
  * @param  {Object} info  Information about the change from `fsevents`.
  */
 function changed (path, info) {
-  var time = (new Date()).toTimeString()
+  // Get a relative path.
   if (path.indexOf(cwd + '/') === 0) {
     path = path.slice(cwd.length + 1)
   }
-  var what = info.event.replace(/^\w/, function (c) { return c.toUpperCase() })
-  var when = '\u001b[90m at ' + time + '\u001b[39m'
-  console.log('\u001b[33m' + what + ' "' + path + '"' + when + '\n')
-  if (!child.killed) {
-    if (live.test(path)) {
-      info = JSON.stringify(info)
-      child.stdin.write(info)
-    } else {
-      child.kill()
+  // If not ignored, we'll at least log the change.
+  if (!ignore.test(path)) {
+    var data = info.event
+    data = data[0].toUpperCase() + data.substr(1) + ' "' + path +
+      '"\u001b[90m at ' + (new Date()).toTimeString() + '\u001b[39m'
+    if (!child.killed) {
+      if (live.test(path)) {
+        console.log('\u001b[32m' + data)
+        info = JSON.stringify(info)
+        child.stdin.write(info)
+      } else {
+        console.log('\u001b[33m' + data + '\n')
+        child.kill()
+      }
     }
   }
 }
@@ -108,10 +132,10 @@ function changed (path, info) {
 function munge (text) {
   var lines = ('' + text).split('\n')
   lines.forEach(function (line, index) {
-    lines[index] = lines[index].replace(/\d+/, '')
+    lines[index] = lines[index].replace(/\d+/, '#')
   })
   lines.sort()
-  text = lines.join('\n')
+  text = lines.join('\n').trim()
   return text
 }
 

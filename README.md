@@ -25,7 +25,8 @@ lighter-run
 ## Configuration
 `lighter-run` uses `lighter-config` for its configuration. Just create a
 `"config/base.json"` file in your project, and add some options under a
-property called `"lighterRun"`. The following is an example of a configuration which uses the default values:
+property called `"lighterRun"`. The following is an example of a configuration
+which uses the default values:
 ```json
 {
   "lighterRun": {
@@ -33,12 +34,23 @@ property called `"lighterRun"`. The following is an example of a configuration w
     "maxRestartDelay": 5000,
     "restartDelayBackoff": 2,
     "cleanTime": 2000,
-    "live": [
+    "ignore": [
+      ".DS_Store",
       ".cache",
+      ".git",
+      ".idea",
+      ".project",
       "coverage",
       "data",
       "log"
-    ]
+    ],
+    "live": [
+      "public",
+      "scripts",
+      "styles",
+      "views"
+    ],
+    "watchDirs": null
   }
 }
 ```
@@ -55,8 +67,15 @@ Multiplier to be applied to the restart delay time after each failure.
 **cleanTime**<br>
 Length of time that a process must be running before it's considered to have started cleanly.
 
+**ignore**<br>
+File patterns in which changes should be ignored.
+
 **live**<br>
-File patterns that can be modified without causing the process to be restarted.
+File patterns that can be live-reloaded instead of restarting the process.
+
+**watchDirs**<br>
+Absolute paths for directories that should be watched. (Defaults to the current
+working directory).
 
 
 ## More on lighter-run...

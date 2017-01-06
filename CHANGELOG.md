@@ -2,3 +2,6 @@
 
 ## v1.0.0 - 2016-10-25
 * `major` First release.
+
+## v1.1.0 - 2017-01-05
+* `minor` Added **watchDirs** and **ignore** config properties.

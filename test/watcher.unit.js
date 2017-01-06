@@ -138,7 +138,7 @@ if (process.platform === 'darwin') {
         event: 'deleted'
       })
       setTimeout(function () {
-        is(console.log.value, 2)
+        is(console.log.value, 1)
         is(killCount, 1)
         unmock(console)
         unmock(cp)
@@ -183,8 +183,8 @@ if (process.platform === 'darwin') {
       })
       delete cache[runJs]
       require('../run')
-      changed(cwd + '/.cache/run.json', {
-        path: cwd + '/.cache/run.json',
+      changed(cwd + '/public/favicon.ico', {
+        path: cwd + '/public/favicon.ico',
         event: 'created'
       })
     })
@@ -236,6 +236,57 @@ if (process.platform === 'darwin') {
         path: cwd + '/run.log',
         event: 'modified'
       })
+    })
+
+    it('allows ignore configuration via config.lighterRun.ignore', function (done) {
+      var fsevents = cache[fseventsJs]
+      var config = require('lighter-config')
+      var changed
+      mock(config, {
+        lighterRun: {
+          ignore: '/IGNORE.txt'
+        }
+      })
+      mock(console, {
+        log: noop
+      })
+      mock(cp, {
+        spawn: function (node, args) {
+          return {
+            on: noop,
+            stdout: fakeStream,
+            stderr: fakeStream,
+            stdin: {
+              write: function () {
+                is.fail('Should have ignored IGNORE.txt')
+              }
+            }
+          }
+        }
+      })
+      mock(fsevents, {
+        exports: function () {
+          return {
+            on: function (type, fn) {
+              changed = fn
+            },
+            start: noop
+          }
+        }
+      })
+      delete cache[runJs]
+      require('../run')
+      changed(cwd + '/IGNORE.txt', {
+        path: cwd + '/IGNORE.txt',
+        event: 'created'
+      })
+      setTimeout(function () {
+        unmock(config)
+        unmock(console)
+        unmock(cp)
+        unmock(fsevents)
+        done()
+      }, 9)
     })
 
     it('falls back to fs.watch', function (done) {
