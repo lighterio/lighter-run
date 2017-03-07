@@ -3,5 +3,7 @@ node_js:
   - "6.9"
   - "4.6"
   - "0.12"
-after_script:
-  - npm run coveralls
+script:
+  - npm run cover
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

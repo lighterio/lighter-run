@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/npm/v/lighter-run.svg)](//www.npmjs.com/package/lighter-run)
 [![Downloads](https://img.shields.io/npm/dm/lighter-run.svg)](//www.npmjs.com/package/lighter-run)
 [![Build](https://img.shields.io/travis/lighterio/lighter-run.svg)](//travis-ci.org/lighterio/lighter-run)
-[![Coverage](https://img.shields.io/coveralls/lighterio/lighter-run/master.svg)](//coveralls.io/r/lighterio/lighter-run)
+[![Coverage](https://img.shields.io/codecov/c/github/lighterio/lighter-run/master.svg)](//codecov.io/gh/lighterio/lighter-run)
 [![Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](//www.npmjs.com/package/standard)
 
 With `lighter-run`, you can run the node application that's in your current

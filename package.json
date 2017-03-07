@@ -9,7 +9,7 @@
     "fsevents": ">=1.0.14 <2"
   },
   "devDependencies": {
-    "exam": ">=1.4.5 <2"
+    "exam": "^1.4.5"
   },
   "keywords": [
     "lighter",
@@ -37,7 +37,6 @@
     "test": "./node_modules/exam/exam.js",
     "cover": "./node_modules/exam/exam-cover.js",
     "report": "open coverage/lcov-report/index.html",
-    "coveralls": "./node_modules/exam/exam-coveralls.js",
     "bench": "./node_modules/exam/exam.js test/bench"
   },
   "repository": "https://github.com/lighterio/lighter-run.git",
@@ -47,5 +46,5 @@
   "contributors": [
     "Sam Eubank <sameubank@gmail.com>"
   ],
-  "license": "ISC"
+  "license": "MIT"
 }
