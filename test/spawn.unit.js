@@ -64,6 +64,57 @@ describe('spawn', function () {
     require('../run')
   })
 
+  it('passes child arguments found after a double-dash', function (done) {
+    var spawnCount = 0
+    mock(process, {
+      argv: ['/usr/local/bin/node', '/usr/local/bin/lr', '--', '--port', '8080']
+    })
+    mock(cp, {
+      spawn: function (node, args) {
+        is(args[1], '--port')
+        is(args[2], '8080')
+        setTimeout(done, 1)
+        return new Child()
+      }
+    })
+    delete cache[runJs]
+    require('../run')
+  })
+
+  it('uses an optional file argument', function (done) {
+    var spawnCount = 0
+    mock(process, {
+      argv: ['/usr/local/bin/node', '/usr/local/bin/lr', 'this.js']
+    })
+    mock(cp, {
+      spawn: function (node, args) {
+        is(args[0], 'this.js')
+        setTimeout(done, 1)
+        return new Child()
+      }
+    })
+    delete cache[runJs]
+    require('../run')
+  })
+
+  it('uses an optional file argument found before double dashes', function (done) {
+    var spawnCount = 0
+    mock(process, {
+      argv: ['/usr/local/bin/node', '/usr/local/bin/lr', 'this.js', '--', '--that', 'THE_OTHER']
+    })
+    mock(cp, {
+      spawn: function (node, args) {
+        is(args[0], 'this.js')
+        is(args[1], '--that')
+        is(args[2], 'THE_OTHER')
+        setTimeout(done, 1)
+        return new Child()
+      }
+    })
+    delete cache[runJs]
+    require('../run')
+  })
+
   it('writes output once the new child process runs cleanly', function (done) {
     var spawnCount = 0
     var child = new Child()

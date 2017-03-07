@@ -22,6 +22,27 @@ application's entry point file.
 lighter-run
 ```
 
+## Passing Arguments
+
+To pass arguments to your entry point, just list them after a double-dash:
+
+```bash
+lighter-run -- ARG1 ARG2 ARG3
+```
+
+## Running Other Files
+
+If you'd like to run a file other than the one that's specified as `"main"` in
+your `package.json`, then you can specify it as an argument to `lighter-run`:
+
+```bash
+lighter-run index
+```
+
+**NOTE:** You can omit the ".js" extension just as you would with the `node`
+executable.
+
+
 ## Configuration
 `lighter-run` uses `lighter-config` for its configuration. Just create a
 `"config/base.json"` file in your project, and add some options under a

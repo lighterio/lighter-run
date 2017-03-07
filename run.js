@@ -5,7 +5,7 @@ var config = require('lighter-config').lighterRun || {}
 var stdout = process.stdout
 var write = stdout.write
 var node = process.execPath
-var args = process.argv.slice(3)
+var argv = process.argv
 var cwd = process.cwd()
 var env = process.env
 var child = null
@@ -81,10 +81,15 @@ watchDirs.forEach(function (dir) {
   }
 })
 
-// Find the "main" file in "package.json".
+// Find arguments that come before or after a double-dash.
+var dashes = argv.indexOf('--')
+var args = dashes < 0 ? argv : argv.slice(0, dashes)
+var childArgs = dashes < 0 ? [] : argv.slice(dashes + 1)
+
+// Find the specified file, or default to "main" from "package.json".
 try {
-  var main = require.resolve(cwd)
-  args.unshift(main)
+  var file = args[2] || require.resolve(cwd)
+  childArgs.unshift(file)
 } catch (e) {
   console.error('The current directory does not have a node application.\n' +
     'Please use "npm init", then create an entry point file such as "index.js".')
@@ -151,7 +156,7 @@ function start () {
   previousStart = now
 
   // Spawn the child process, and pipe output to stdout.
-  child = spawn(node, args, {cwd: cwd, env: env})
+  child = spawn(node, childArgs, {cwd: cwd, env: env})
   child.stdout.pipe(stdout)
   child.stderr.pipe(stdout)
 
