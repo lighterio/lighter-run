@@ -1,5 +1,8 @@
 # lighter-run Change Log
 
+## v1.2.1 - 2017-05-27
+* `patch` Added a newline after live change JSON.
+
 ## v1.2.0 - 2017-03-06
 * `minor` Added an optional file argument.
 

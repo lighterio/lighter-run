@@ -119,7 +119,7 @@ function changed (path, info) {
       if (live.test(path)) {
         console.log('\u001b[32m' + data)
         info = JSON.stringify(info)
-        child.stdin.write(info)
+        child.stdin.write(info + '\n')
       } else {
         console.log('\u001b[33m' + data + '\n')
         child.kill()
